@@ -1,0 +1,15 @@
+.sidebar {
+    background-color: #ffffff !important;
+}
+
+.sidebar .nav-link,
+.sidebar .nav-link i,
+.sidebar .nav-link span {
+    color: #333333 !important;
+}
+
+.sidebar .nav-link.active,
+.sidebar .nav-link:hover {
+    color: #D4AC0D !important;
+    font-weight: bold;
+}

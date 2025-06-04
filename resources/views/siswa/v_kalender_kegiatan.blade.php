@@ -1,0 +1,82 @@
+@extends('layouts.v_template2')
+
+@section('title')
+Kalender Kegiatan
+@endsection
+
+@section('page')
+Kalender Kegiatan Ekstrakurikuler
+@endsection
+
+@section('content')
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header">
+            <h5>Kalender Kegiatan</h5>
+        </div>
+        <div class="card-body">
+            <div id="calendar">
+                <!-- Modal Detail Kegiatan -->
+                <div class="modal fade" id="modalKegiatan" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalLabel">Detail Kegiatan</h5>
+                                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p><strong>Judul Kegiatan:</strong> <span id="modal-title"></span></p>
+                                <p><strong>Ekstrakurikuler:</strong> <span id="modal-ekskul"></span></p>
+                                <p><strong>Jenis Kegiatan:</strong> <span id="modal-jenis"></span></p>
+                                <p><strong>Waktu:</strong> <span id="modal-waktu"></span></p>
+                                <p><strong>Lokasi:</strong> <span id="modal-lokasi"></span></p>
+                                <p><strong>Keterangan:</strong> <span id="modal-keterangan"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('script')
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,listMonth'
+            },
+            events: '/kalender-kegiatan/json',
+            eventClick: function(info) {
+                const event = info.event;
+                const props = event.extendedProps;
+
+                // Set data ke modal
+                document.getElementById('modal-title').textContent = event.title;
+                document.getElementById('modal-ekskul').textContent = props.nama_ekskul || '-';
+                document.getElementById('modal-jenis').textContent = props.jenis_kegiatan || '-';
+                document.getElementById('modal-waktu').textContent = event.start.toLocaleString() + ' - ' + (event.end ? event.end.toLocaleString() : '-');
+                document.getElementById('modal-lokasi').textContent = props.lokasi || '-';
+                document.getElementById('modal-keterangan').textContent = props.keterangan || '-';
+
+                // Tampilkan modal
+                const modal = new bootstrap.Modal(document.getElementById('modalKegiatan'));
+                modal.show();
+            }
+        });
+
+        calendar.render();
+    });
+</script>
+@endsection
