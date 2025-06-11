@@ -8,17 +8,23 @@ class m_kehadiran extends Model
 {
     protected $table = 'kehadiran';
     protected $primaryKey = 'id_kehadiran';
-    protected $fillable = [
-        'id_kegiatan', 'id_anggota', 'status', 'keterangan', 'diverifikasi'
-    ];
+    public $timestamps = true;
 
-    public function kegiatan()
-    {
-        return $this->belongsTo(\App\Models\m_kegiatan::class, 'id_kegiatan');
-    }
+    protected $fillable = [
+        'id_kegiatan',
+        'id_anggota',
+        'status',
+        'keterangan',
+        'diverifikasi'
+    ];
 
     public function anggota()
     {
-        return $this->belongsTo(\App\Models\m_anggota::class, 'id_anggota');
+        return $this->belongsTo(m_anggota::class, 'id_anggota');
+    }
+
+    public function kegiatan()
+    {
+        return $this->belongsTo(m_kegiatan::class, 'id_kegiatan');
     }
 }

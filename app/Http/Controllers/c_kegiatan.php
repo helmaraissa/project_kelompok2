@@ -41,7 +41,7 @@ class c_kegiatan extends Controller
 
     public function edit($id)
     {
-        $kegiatan = m_kegiatan::find($id); // ambil 1 record kegiatan
+        $kegiatan = m_kegiatan::find($id);
         $ekskul = m_ekskul::all();
 
         if (!$kegiatan) {
@@ -53,10 +53,9 @@ class c_kegiatan extends Controller
 
     public function add()
     {
-        $data = [
+        return view('pembina.v_addkegiatan', [
             'ekskul' => m_ekskul::all()
-        ];
-        return view('pembina.v_addkegiatan', $data);
+        ]);
     }
 
     public function insert()
@@ -131,7 +130,8 @@ class c_kegiatan extends Controller
                 'lokasi' => $item->lokasi,
                 'jenis_kegiatan' => $item->jenis_kegiatan,
                 'keterangan' => $item->keterangan,
-                'nama_ekskul' => $item->ekskul->nama_ekskul ?? '-'
+                'nama_ekskul' => $item->ekskul->nama_ekskul ?? '-',
+                'id' => $item->id
             ];
         });
 
@@ -140,6 +140,27 @@ class c_kegiatan extends Controller
 
     public function kalenderSiswa()
     {
-        return view('siswa.v_kalender_kegiatan');
+        $events = [];
+        $kegiatan = m_kegiatan::with('ekskul')->get();
+
+        foreach ($kegiatan as $k) {
+            $events[] = [
+                'title' => $k->jenis_kegiatan . ' - ' . ($k->ekskul->nama_ekskul ?? '-'),
+                'start' => $k->tanggal . 'T' . $k->waktu_mulai,
+                'end' => $k->tanggal . 'T' . $k->waktu_selesai,
+                'extendedProps' => [
+                    'id' => $k->id,
+                    'nama_ekskul' => $k->ekskul->nama_ekskul ?? '-',
+                    'jenis_kegiatan' => $k->jenis_kegiatan,
+                    'tanggal_kegiatan' => $k->tanggal,
+                    'waktu_mulai' => $k->waktu_mulai,
+                    'waktu_selesai' => $k->waktu_selesai,
+                    'lokasi' => $k->lokasi,
+                    'keterangan' => $k->keterangan,
+                ]
+            ];
+        }
+
+        return view('siswa.v_kalender_kegiatan', compact('events'));
     }
 }

@@ -21,13 +21,14 @@ class m_kegiatan extends Model
         'lokasi',
     ];
 
-    public function allData()
+    public function ekskul()
     {
-        return DB::table('kegiatan')
-            ->join('ekskul', 'kegiatan.id_ekskul', '=', 'ekskul.id_ekskul')
-            ->select('kegiatan.*', 'ekskul.nama_ekskul')
-            ->orderBy('tanggal', 'desc')
-            ->get();
+        return $this->belongsTo(m_ekskul::class, 'id_ekskul');
+    }
+
+    public function kehadiran()
+    {
+        return $this->hasMany(m_kehadiran::class, 'kegiatan_id');
     }
 
     public function addData($data)
@@ -38,15 +39,5 @@ class m_kegiatan extends Model
     public function deleteData($id)
     {
         DB::table('kegiatan')->where('id', $id)->delete();
-    }
-
-    public function ekskul()
-    {
-        return $this->belongsTo(m_ekskul::class, 'id_ekskul'); // sesuaikan nama foreign key
-    }
-
-    public function kehadiran()
-    {
-        return $this->hasMany(m_kehadiran::class, 'kegiatan_id');
     }
 }

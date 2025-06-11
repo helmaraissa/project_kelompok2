@@ -90,6 +90,9 @@ Route::middleware(['auth', 'role:pembina'])->group(function () {
     Route::get('/lomba/edit/{id_lomba}', [c_lomba::class, 'edit'])->name('lomba.edit');
     Route::put('/lomba/update/{id_lomba}', [c_lomba::class, 'update'])->name('lomba.update');
     Route::get('/lomba/delete/{id_lomba}', [c_lomba::class, 'delete']);
+
+    Route::get('kehadiran/verifikasi', [C_Kehadiran::class, 'listVerifikasi']);
+    Route::put('kehadiran/verifikasi/{id}', [C_Kehadiran::class, 'verifikasi']);
 });
 
 Route::resource('kehadiran', c_kehadiran::class);
@@ -97,9 +100,15 @@ Route::resource('kehadiran', c_kehadiran::class);
 Route::middleware(['auth', 'role:siswa'])->group(function () {
     Route::get('/kalender-kegiatan', [c_kegiatan::class, 'kalenderSiswa'])->name('kalender.kegiatan');
     Route::get('/kalender-kegiatan/json', [c_kegiatan::class, 'getKegiatan']);
+    Route::get('/kehadiran/absen/{id_kegiatan}', [c_kehadiran::class, 'formAbsen'])->name('kehadiran.form');
+    Route::post('/kehadiran/absen', [c_kehadiran::class, 'submitAbsen'])->name('kehadiran.store');
     Route::get('/anggota-saya', [c_anggota::class, 'anggotaSiswa'])->name('anggota.saya');
     Route::get('/absensi-saya', [c_kehadiran::class, 'kehadiranSiswa'])->name('absensi.saya');
     Route::get('/nilai-saya', [c_anggota::class, 'nilaiSiswa'])->name('nilai.saya');
+    Route::get('/kehadiran/siswa/form/{id_kegiatan}', [c_kehadiran::class, 'formSiswa']);
+    Route::post('/kehadiran/siswa/simpan', [c_kehadiran::class, 'simpanSiswa']);
+
 });
 
-Route::get('/anggota/saya', [c_home::class, 'dataAnggotaSiswa'])->middleware('auth');
+
+Route::post('/kehadiran/siswa/simpan', [c_kehadiran::class, 'simpanSiswa']);
