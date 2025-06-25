@@ -1,108 +1,127 @@
 @extends('layouts.v_template2')
 
-@section('title')
-Data Pendaftaran
-@endsection
-
-@section('page')
-Halaman Data Pendaftaran
-@endsection
+@section('title', 'Data Pendaftaran')
+@section('page', 'Halaman Data Pendaftaran')
 
 @section('content')
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
-            <div class="card">
+            <div class="card shadow">
                 <div class="card-header">
                     <h3 class="card-title">Data Pendaftaran Ekstrakurikuler</h3>
                 </div>
-                <!-- /.card-header -->
                 <div class="card-body">
                     @if (session('pesan'))
-                        <div class="alert alert-success alert-dismissible">
-                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                            <h5><i class="icon fas fa-check"></i> Success</h5>
-                            {{ session('pesan') }}
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="icon fas fa-check"></i> {{ session('pesan') }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Tutup">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
                         </div>
                     @endif
-                    <div align="right">
-                        <a href="/datapendaftaran/add" class="btn btn-sm btn-success">Tambah Pendaftaran</a><br>
-                    </div>
-                    <table id="example1" class="table table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Email</th>
-                                <th>Nama</th>
-                                <th>NIS</th>
-                                <th>Kelas</th>
-                                <th>Jenis Kelamin</th>
-                                <th>Ekstrakurikuler</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php $no=1; ?>
-                            @foreach ($pendaftarans as $data)
-                            <tr>
-                                <td>{{ $no++ }}</td>
-                                <td>{{ $data->email }}</td>
-                                <td>{{ $data->nama }}</td>
-                                <td>{{ $data->nis }}</td>
-                                <td>{{ $data->kelas }}</td>
-                                <td>{{ $data->jenis_kelamin }}</td>
-                                <td>{{ $data->nama_ekskul }}</td>
-                                <td>
-                                    <form action="{{ route('pendaftaran.update', $data->id) }}" method="POST">
-                                        @csrf
-                                        <select name="status" class="form-control form-control-sm" onchange="this.form.submit()">
-                                            <option value="menunggu" {{ $data->status == 'menunggu' ? 'selected' : '' }}>Menunggu</option>
-                                            <option value="diterima" {{ $data->status == 'diterima' ? 'selected' : '' }}>Diterima</option>
-                                            <option value="ditolak" {{ $data->status == 'ditolak' ? 'selected' : '' }}>Ditolak</option>
-                                        </select>
-                                    </form>
-                                </td>
-                                <td>
-                                    <a href="/datapendaftaran/edit/{{ $data->id }}" class="btn btn-sm btn-warning">Edit</a>
-                                    <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#delete{{ $data->id }}">
-                                        Hapus
-                                    </button>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+
+                    {{-- Tombol tambah dihapus --}}
+
+                    <form action="{{ route('pendaftaran.mass-update') }}" method="POST">
+                        @csrf
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="select-all"></th>
+                                    <th>No</th>
+                                    <th>Email</th>
+                                    <th>Nama</th>
+                                    <th>NIS</th>
+                                    <th>Kelas</th>
+                                    <th>Jenis Kelamin</th>
+                                    <th>Ekstrakurikuler</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php $no = 1; @endphp
+                                @foreach ($pendaftarans as $data)
+                                <tr>
+                                    <td><input type="checkbox" name="ids[]" value="{{ $data->id }}" class="row-checkbox"></td>
+                                    <td>{{ $no++ }}</td>
+                                    <td>{{ $data->email }}</td>
+                                    <td>{{ $data->nama }}</td>
+                                    <td>{{ $data->nis }}</td>
+                                    <td>{{ $data->kelas }}</td>
+                                    <td>{{ $data->jenis_kelamin }}</td>
+                                    <td>{{ $data->nama_ekskul }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ $data->status == 'diterima' ? 'success' : ($data->status == 'ditolak' ? 'danger' : 'warning') }}">
+                                            {{ ucfirst($data->status) }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {{-- Tombol edit dihapus --}}
+                                        <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#delete{{ $data->id }}">Hapus</button>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+
+                        <div class="mt-3 d-flex">
+                            <select name="status_action" class="form-control form-control-sm w-auto mr-2" required>
+                                <option value="" disabled selected>Pilih Aksi Massal</option>
+                                <option value="diterima">Terima</option>
+                                <option value="ditolak">Tolak</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-warning">Proses</button>
+                        </div>
+                    </form>
 
                     @foreach ($pendaftarans as $data)
-                    <div class="modal fade" id="delete{{ $data->id }}">
-                        <div class="modal-dialog modal-sm">
-                            <div class="modal-content bg-danger">
+                    <!-- Modal Delete -->
+                    <div class="modal fade" id="delete{{ $data->id }}" tabindex="-1" role="dialog">
+                        <div class="modal-dialog modal-sm" role="document">
+                            <div class="modal-content bg-danger text-white">
                                 <div class="modal-header">
-                                    <h6 class="modal-title">{{ $data->nama }}</h6>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <h6 class="modal-title">Hapus {{ $data->nama }}</h6>
+                                    <button type="button" class="close text-white" data-dismiss="modal">
                                         <span aria-hidden="true">&times;</span>
                                     </button>
                                 </div>
                                 <div class="modal-body">
-                                    <p>Apakah anda ingin menghapus data ini?</p>
+                                    Apakah Anda yakin ingin menghapus data ini?
                                 </div>
-                                <div class="modal-footer justify-content-between">
-                                    <a href="/datapendaftaran/delete/{{ $data->id }}" class="btn btn-outline-light">Yes</a>
-                                    <button type="button" class="btn btn-outline-light" data-dismiss="modal">No</button>
+                                <div class="modal-footer">
+                                    <a href="/datapendaftaran/delete/{{ $data->id }}" class="btn btn-outline-light">Ya</a>
+                                    <button type="button" class="btn btn-outline-light" data-dismiss="modal">Tidak</button>
                                 </div>
                             </div>
-                            <!-- /.modal-content -->
                         </div>
-                        <!-- /.modal-dialog -->
                     </div>
                     @endforeach
 
                 </div>
-                <!-- /.card-body -->
             </div>
-            <!-- /.card -->
         </div>
     </div>
 </div>
+@endsection
+
+@section('script')
+<script>
+    $(document).ready(function () {
+        // Fungsi Select All
+        $('#select-all').on('click', function () {
+            $('.row-checkbox').prop('checked', this.checked);
+        });
+
+        // Update status tombol "Select All" jika semua dicentang
+        $('.row-checkbox').on('click', function () {
+            if (!$(this).prop('checked')) {
+                $('#select-all').prop('checked', false);
+            } else if ($('.row-checkbox:checked').length === $('.row-checkbox').length) {
+                $('#select-all').prop('checked', true);
+            }
+        });
+    });
+</script>
 @endsection

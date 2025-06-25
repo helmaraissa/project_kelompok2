@@ -23,13 +23,8 @@
 
         <div class="form-group">
             <label>Ekstrakurikuler</label>
-            <select name="id_ekskul" class="form-control" required>
-                @foreach($ekskul as $e)
-                    <option value="{{ $e->id_ekskul }}" {{ $lomba->id_ekskul == $e->id_ekskul ? 'selected' : '' }}>
-                        {{ $e->nama_ekskul }}
-                    </option>
-                @endforeach
-            </select>
+            <input type="text" class="form-control" value="{{ $ekskul->nama_ekskul }}" readonly>
+            <input type="hidden" name="id_ekskul" value="{{ $ekskul->id_ekskul }}">
         </div>
 
         <div class="form-group">

@@ -10,11 +10,14 @@
                 <li class="nav-item"><a class="nav-link" href="#portfolio">Ekstrakurikuler</a></li>
                 <li class="nav-item"><a class="nav-link" href="#services">Prestasi</a></li>
                 <li class="nav-item"><a class="nav-link" href="#about">Jadwal</a></li>
-                <li class="nav-item"><a class="nav-link" href="#team">Team</a></li>
-                <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url('/index') }}">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Sign In</a></li>
-                <li class="nav-item"><a class="nav-link" href="#contact">Sign Up</a></li>
+
+                @auth
+                    {{-- Jika sudah login, tampilkan Dashboard --}}
+                    <li class="nav-item"><a class="nav-link" href="{{ url('/index') }}">Dashboard</a></li>
+                @else
+                    {{-- Jika belum login, tampilkan Sign In --}}
+                    <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Sign In</a></li>
+                @endauth
             </ul>
         </div>
     </div>

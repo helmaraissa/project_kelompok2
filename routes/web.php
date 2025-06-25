@@ -13,6 +13,7 @@ use App\Http\Controllers\c_anggota;
 use App\Http\Controllers\c_kegiatan;
 use App\Http\Controllers\c_lomba;
 use App\Http\Controllers\c_kehadiran;
+use App\Http\Controllers\c_nilai;
 
 /*
 |--------------------------------------------------------------------------
@@ -59,6 +60,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/ekskul/edit/{id_ekskul}', [c_ekskul::class, 'edit']);
     Route::post('/ekskul/update/{id_ekskul}', [c_ekskul::class, 'update']);
     Route::get('/ekskul/delete/{id_ekskul}', [c_ekskul::class, 'delete']);
+
+    Route::get('/kegiatan', [c_kegiatan::class, 'index'])->name('kegiatan');
+
 });
 
 Route::middleware(['auth', 'role:pembina'])->group(function () {
@@ -68,6 +72,7 @@ Route::middleware(['auth', 'role:pembina'])->group(function () {
     Route::get('/pendaftaran/edit/{id}', [c_pendaftaran::class, 'edit'])->name('pendaftaran.edit');
     Route::post('/pendaftaran/update/{id}', [c_pendaftaran::class, 'update'])->name('pendaftaran.update');
     Route::get('/pendaftaran/delete/{id}', [c_pendaftaran::class, 'delete'])->name('pendaftaran.delete');
+    Route::post('/datapendaftaran/mass-update', [c_pendaftaran::class, 'massUpdate'])->name('pendaftaran.mass-update');
 
     Route::get('/anggota', [c_anggota::class, 'index'])->name('anggota');
     Route::get('/anggota/add', [c_anggota::class, 'add'])->name('anggota.add');
@@ -93,22 +98,39 @@ Route::middleware(['auth', 'role:pembina'])->group(function () {
 
     Route::get('kehadiran/verifikasi', [C_Kehadiran::class, 'listVerifikasi']);
     Route::put('kehadiran/verifikasi/{id}', [C_Kehadiran::class, 'verifikasi']);
+    Route::put('/kehadiran/mass-verifikasi', [c_kehadiran::class, 'massVerifikasi'])->name('kehadiran.mass-verifikasi');
+
+    Route::get('/kehadiran/verifikasi/{id}', [c_kehadiran::class, 'verifikasi']);
+
+    // Manajemen Nilai oleh Pembina
+    Route::get('/nilai', [c_nilai::class, 'index'])->name('nilai');
+    Route::get('/nilai/add', [c_nilai::class, 'add'])->name('nilai.add');
+    Route::post('/nilai/insert', [c_nilai::class, 'insert'])->name('nilai.insert');
+    Route::get('/nilai/edit/{id}', [c_nilai::class, 'edit'])->name('nilai.edit');
+    Route::post('/nilai/update/{id}', [c_nilai::class, 'update'])->name('nilai.update');
+    Route::get('/nilai/delete/{id}', [c_nilai::class, 'delete'])->name('nilai.delete');
+    Route::get('/nilai/detail/{id}', [c_nilai::class, 'detail'])->name('nilai.detail');
+    Route::get('/nilai/print/{kelas}', [c_nilai::class, 'printByKelas'])->name('nilai.print.kelas');
 });
 
 Route::resource('kehadiran', c_kehadiran::class);
 
 Route::middleware(['auth', 'role:siswa'])->group(function () {
+    // Kalender Kegiatan
     Route::get('/kalender-kegiatan', [c_kegiatan::class, 'kalenderSiswa'])->name('kalender.kegiatan');
     Route::get('/kalender-kegiatan/json', [c_kegiatan::class, 'getKegiatan']);
-    Route::get('/kehadiran/absen/{id_kegiatan}', [c_kehadiran::class, 'formAbsen'])->name('kehadiran.form');
-    Route::post('/kehadiran/absen', [c_kehadiran::class, 'submitAbsen'])->name('kehadiran.store');
+
+    // Absensi dari Kalender
+    Route::get('/kehadiran/siswa/form/{id_kegiatan}', [c_kehadiran::class, 'formSiswa'])->name('kehadiran.form.siswa');
+    Route::post('/kehadiran/siswa/simpan', [c_kehadiran::class, 'simpanSiswa'])->name('kehadiran.simpan.siswa');
+    Route::get('/rekap-kehadiran', [c_kehadiran::class, 'rekapSiswa']);
+
+    // Lain-lain (opsional)
     Route::get('/anggota-saya', [c_anggota::class, 'anggotaSiswa'])->name('anggota.saya');
     Route::get('/absensi-saya', [c_kehadiran::class, 'kehadiranSiswa'])->name('absensi.saya');
     Route::get('/nilai-saya', [c_anggota::class, 'nilaiSiswa'])->name('nilai.saya');
-    Route::get('/kehadiran/siswa/form/{id_kegiatan}', [c_kehadiran::class, 'formSiswa']);
-    Route::post('/kehadiran/siswa/simpan', [c_kehadiran::class, 'simpanSiswa']);
-
 });
+
 
 
 Route::post('/kehadiran/siswa/simpan', [c_kehadiran::class, 'simpanSiswa']);

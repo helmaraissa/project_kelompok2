@@ -20,6 +20,12 @@ class c_auth extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
+
+            // Simpan id_user ke session
+            session([
+                'id_user' => $user->id,
+            ]);
+
             // Redirect berdasarkan role
             if ($user->role === 'admin') {
                 return redirect('/index');

@@ -59,6 +59,7 @@ class c_pendaftaran extends Controller
     }
     protected $m_pendaftaran;
 
+    // Menginisialisasi model agar bisa digunakan berkali-kali dalam controller
     public function __construct()
     {
         $this->m_pendaftaran = new m_pendaftaran();
@@ -73,7 +74,7 @@ class c_pendaftaran extends Controller
         $pendaftarans = DB::table('pendaftarans')
             ->join('ekskul', 'pendaftarans.id_ekskul', '=', 'ekskul.id_ekskul')
             ->where('ekskul.id_pembina', $id_pembina)
-            ->select('pendaftarans.*', 'ekskul.nama_ekskul') // ← ini penting
+            ->select('pendaftarans.*', 'ekskul.nama_ekskul') 
             ->get();
 
         return view('pembina/v_datapendaftaran', ['pendaftarans' => $pendaftarans]);
@@ -132,29 +133,132 @@ class c_pendaftaran extends Controller
         if ($request->status === 'diterima') {
             $pendaftar = $this->m_pendaftaran->detailData($id);
 
-            $existingUser = \App\Models\m_user::where('username', $pendaftar->email)->first();
+            if (!$pendaftar) {
+                return redirect()->route('pendaftaran')->with('error', 'Data pendaftar tidak ditemukan.');
+            }
 
-            if (!$existingUser) {
-                $password_plain = $pendaftar->tgl_lahir; // Password asli (misal tanggal lahir)
+            // Cari user berdasarkan email
+            $user = \App\Models\m_user::where('username', $pendaftar->email)->first();
+
+            // Jika belum ada user, buat akun
+            if (!$user) {
+                $password_plain = $pendaftar->tgl_lahir; // contoh password: tanggal lahir
                 $password_hashed = Hash::make($password_plain);
 
-                \App\Models\m_user::create([
+                $user = \App\Models\m_user::create([
                     'name' => $pendaftar->nama,
                     'username' => $pendaftar->email,
                     'role' => 'siswa',
                     'password' => $password_hashed,
                 ]);
 
-                // Kirim email notifikasi akun diterima + info akun
-                Mail::to($pendaftar->email)->send(new AkunDiterimaMail(
-                    $pendaftar->nama,
-                    $pendaftar->email,
-                    $password_plain
-                ));
+                // Kirim email akun baru
+                try {
+                    Mail::to($pendaftar->email)->send(new AkunDiterimaMail(
+                        $pendaftar->nama,
+                        $pendaftar->email,
+                        $password_plain
+                    ));
+                } catch (\Exception $e) {
+                    \Log::error('Gagal kirim email akun diterima: ' . $e->getMessage());
+                }
+            }
+
+            // Cek apakah sudah ada di anggota
+            $sudahAnggota = DB::table('anggota')
+                ->where('nis', $pendaftar->nis)
+                ->where('id_ekskul', $pendaftar->id_ekskul)
+                ->exists();
+
+            // Insert ke tabel anggota jika belum ada
+            if (!$sudahAnggota) {
+                DB::table('anggota')->insert([
+                    'nama' => $pendaftar->nama,
+                    'nis' => $pendaftar->nis,
+                    'kelas' => $pendaftar->kelas,
+                    'tgl_lahir' => $pendaftar->tgl_lahir,
+                    'jenis_kelamin' => $pendaftar->jenis_kelamin,
+                    'alamat' => $pendaftar->alamat,
+                    'id_ekskul' => $pendaftar->id_ekskul,
+                    'status_keanggotaan' => 'aktif',
+                    'tanggal_gabung' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                    'id_user' => $user->id,
+                ]);
             }
         }
 
         return redirect()->route('pendaftaran')->with('pesan', 'Status pendaftaran berhasil diperbarui!');
+    }
+
+    public function massUpdate(Request $request)
+    {
+        $ids = $request->input('ids');
+        $status = $request->input('status_action');
+
+        if (!$ids || !$status) {
+            return redirect()->back()->with('pesan', 'Tidak ada data yang dipilih atau status kosong.');
+        }
+
+        foreach ($ids as $id) {
+            // Update status
+            $this->m_pendaftaran->editData($id, ['status' => $status]);
+
+            if ($status === 'diterima') {
+                $pendaftar = $this->m_pendaftaran->detailData($id);
+                if (!$pendaftar) continue;
+
+                // Buat user jika belum ada
+                $user = \App\Models\m_user::where('username', $pendaftar->email)->first();
+                if (!$user) {
+                    $password_plain = $pendaftar->tgl_lahir;
+                    $password_hashed = \Hash::make($password_plain);
+
+                    $user = \App\Models\m_user::create([
+                        'name' => $pendaftar->nama,
+                        'username' => $pendaftar->email,
+                        'role' => 'siswa',
+                        'password' => $password_hashed,
+                    ]);
+
+                    try {
+                        Mail::to($pendaftar->email)->send(new AkunDiterimaMail(
+                            $pendaftar->nama,
+                            $pendaftar->email,
+                            $password_plain
+                        ));
+                    } catch (\Exception $e) {
+                        \Log::error('Gagal kirim email mass update: ' . $e->getMessage());
+                    }
+                }
+
+                // Tambahkan ke anggota jika belum
+                $sudahAnggota = DB::table('anggota')
+                    ->where('nis', $pendaftar->nis)
+                    ->where('id_ekskul', $pendaftar->id_ekskul)
+                    ->exists();
+
+                if (!$sudahAnggota) {
+                    DB::table('anggota')->insert([
+                        'nama' => $pendaftar->nama,
+                        'nis' => $pendaftar->nis,
+                        'kelas' => $pendaftar->kelas,
+                        'tgl_lahir' => $pendaftar->tgl_lahir,
+                        'jenis_kelamin' => $pendaftar->jenis_kelamin,
+                        'alamat' => $pendaftar->alamat,
+                        'id_ekskul' => $pendaftar->id_ekskul,
+                        'status_keanggotaan' => 'aktif',
+                        'tanggal_gabung' => now(),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                        'id_user' => $user->id ?? null,
+                    ]);
+                }
+            }
+        }
+
+        return redirect()->back()->with('pesan', 'Mass update berhasil dilakukan.');
     }
 
     public function delete($id)

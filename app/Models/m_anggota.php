@@ -65,4 +65,9 @@ class m_anggota extends Model
     {
     return $this->hasMany(m_kehadiran::class, 'anggota_id');
     }
+
+    public function nilai()
+    {
+        return $this->hasMany(\App\Models\m_nilai::class, 'id_anggota');
+    }
 }

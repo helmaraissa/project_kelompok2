@@ -18,25 +18,45 @@ class c_kegiatan extends Controller
     public function index()
     {
         $user = Auth::user();
-        $id_pembina = $user->id;
+        $kegiatan = []; // default kosong
 
-        $kegiatan = DB::table('kegiatan')
-            ->join('ekskul', 'kegiatan.id_ekskul', '=', 'ekskul.id_ekskul')
-            ->where('ekskul.id_pembina', $id_pembina)
-            ->select(
-                'kegiatan.id',
-                'kegiatan.nama_kegiatan',
-                'kegiatan.jenis_kegiatan',
-                'kegiatan.keterangan',
-                'kegiatan.tanggal',
-                'kegiatan.waktu_mulai',
-                'kegiatan.waktu_selesai',
-                'kegiatan.lokasi',
-                'ekskul.nama_ekskul'
-            )
-            ->get();
+        if ($user->role === 'admin') {
+            $kegiatan = DB::table('kegiatan')
+                ->join('ekskul', 'kegiatan.id_ekskul', '=', 'ekskul.id_ekskul')
+                ->select(
+                    'kegiatan.id',
+                    'kegiatan.nama_kegiatan',
+                    'kegiatan.jenis_kegiatan',
+                    'kegiatan.keterangan',
+                    'kegiatan.tanggal',
+                    'kegiatan.waktu_mulai',
+                    'kegiatan.waktu_selesai',
+                    'kegiatan.lokasi',
+                    'ekskul.nama_ekskul'
+                )
+                ->orderBy('kegiatan.tanggal', 'desc')
+                ->get();
+        } 
+        else if ($user->role === 'pembina') {
+            $kegiatan = DB::table('kegiatan')
+                ->join('ekskul', 'kegiatan.id_ekskul', '=', 'ekskul.id_ekskul')
+                ->where('ekskul.id_pembina', $user->id)
+                ->select(
+                    'kegiatan.id',
+                    'kegiatan.nama_kegiatan',
+                    'kegiatan.jenis_kegiatan',
+                    'kegiatan.keterangan',
+                    'kegiatan.tanggal',
+                    'kegiatan.waktu_mulai',
+                    'kegiatan.waktu_selesai',
+                    'kegiatan.lokasi',
+                    'ekskul.nama_ekskul'
+                )
+                ->orderBy('kegiatan.tanggal', 'desc')
+                ->get();
+        }
 
-        return view('pembina.v_kegiatan', ['kegiatan' => $kegiatan]);
+        return view('v_kegiatan', compact('kegiatan'));
     }
 
     public function edit($id)
@@ -120,22 +140,22 @@ class c_kegiatan extends Controller
 
     public function getKegiatan()
     {
-        $data = m_kegiatan::with('ekskul')->get();
-
-        $events = $data->map(function ($item) {
+        $data = m_kegiatan::with('ekskul')->get()->map(function ($item) {
             return [
-                'title' => $item->nama_kegiatan . ' - ' . ($item->ekskul->nama_ekskul ?? '-'),
+                'title' => $item->nama_kegiatan,
                 'start' => $item->tanggal . 'T' . $item->waktu_mulai,
                 'end'   => $item->tanggal . 'T' . $item->waktu_selesai,
-                'lokasi' => $item->lokasi,
-                'jenis_kegiatan' => $item->jenis_kegiatan,
-                'keterangan' => $item->keterangan,
-                'nama_ekskul' => $item->ekskul->nama_ekskul ?? '-',
-                'id' => $item->id
+                'extendedProps' => [
+                    'id' => $item->id,
+                    'lokasi' => $item->lokasi,
+                    'jenis_kegiatan' => $item->jenis_kegiatan,
+                    'keterangan' => $item->keterangan,
+                    'nama_ekskul' => $item->ekskul->nama ?? '-'
+                ]
             ];
         });
 
-        return response()->json($events);
+        return response()->json($data);
     }
 
     public function kalenderSiswa()
@@ -163,4 +183,25 @@ class c_kegiatan extends Controller
 
         return view('siswa.v_kalender_kegiatan', compact('events'));
     }
+
+    public function dashboardAdmin()
+    {
+        $kegiatan = DB::table('kegiatan')
+            ->join('ekskul', 'kegiatan.id_ekskul', '=', 'ekskul.id_ekskul')
+            ->select(
+                'kegiatan.id',
+                'kegiatan.nama_kegiatan',
+                'kegiatan.jenis_kegiatan',
+                'kegiatan.keterangan',
+                'kegiatan.tanggal',
+                'kegiatan.waktu_mulai',
+                'kegiatan.waktu_selesai',
+                'kegiatan.lokasi',
+                'ekskul.nama_ekskul'
+            )
+            ->get();
+
+        return view('pembina.v_kegiatan', ['kegiatan' => $kegiatan]);
+    }
+    
 }

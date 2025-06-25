@@ -24,16 +24,11 @@
             @enderror
         </div>
 
+        {{-- Ekstrakurikuler hanya satu, dan readonly --}}
         <div class="form-group">
             <label>Ekstrakurikuler</label>
-            <select name="id_ekskul" class="form-control" required>
-                <option value="">-- Pilih Ekstrakurikuler --</option>
-                @foreach($ekskul as $e)
-                    <option value="{{ $e->id_ekskul }}" {{ old('id_ekskul') == $e->id_ekskul ? 'selected' : '' }}>
-                        {{ $e->nama_ekskul }}
-                    </option>
-                @endforeach
-            </select>
+            <input type="hidden" name="id_ekskul" value="{{ $ekskul->id_ekskul }}">
+            <input type="text" class="form-control" value="{{ $ekskul->nama_ekskul }}" readonly>
             @error('id_ekskul')
                 <small class="text-danger">{{ $message }}</small>
             @enderror

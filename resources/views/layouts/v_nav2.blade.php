@@ -12,7 +12,7 @@
 
     <hr class="sidebar-divider my-0">
 
-    <!-- Dashboard (semua role bisa lihat) -->
+    <!-- Dashboard -->
     <li class="nav-item active">
         <a class="nav-link" href="{{ url('/index') }}">
             <i class="fas fa-fw fa-tachometer-alt"></i>
@@ -22,93 +22,107 @@
 
     <hr class="sidebar-divider">
 
-    <!-- ADMIN MENU -->
+    <!-- ======================== ADMIN ======================== -->
     @if(Auth::user()->role === 'admin')
         <li class="nav-item">
-            <a class="nav-link" href="{{ url('/user') }}">
+            <a class="nav-link" href="{{ route('user') }}">
                 <i class="fas fa-fw fa-user"></i>
                 <span>Data Pengguna</span>
             </a>
         </li>
 
         <li class="nav-item">
-            <a class="nav-link" href="{{ url('/ekskul') }}">
+            <a class="nav-link" href="{{ route('ekskul') }}">
                 <i class="fas fa-fw fa-users"></i>
                 <span>Data Ekstrakurikuler</span>
             </a>
         </li>
 
         <li class="nav-item">
-            <a class="nav-link" href="{{ url('/kegiatan') }}">
+            <a class="nav-link" href="{{ route('kegiatan') }}">
                 <i class="fas fa-fw fa-calendar-alt"></i>
-                <span>Data Jadwal Kegiatan</span>
+                <span>Data Kegiatan</span>
             </a>
         </li>
     @endif
 
-    <!-- PEMBINA MENU -->
+    <!-- ======================== PEMBINA ======================== -->
     @if(Auth::user()->role === 'pembina')
         <li class="nav-item">
-            <a class="nav-link" href="{{ url('/pendaftaran') }}">
+            <a class="nav-link" href="{{ route('pendaftaran') }}">
                 <i class="fas fa-fw fa-clipboard-list"></i>
                 <span>Data Pendaftaran</span>
             </a>
         </li>
 
         <li class="nav-item">
-            <a class="nav-link" href="{{ url('/anggota') }}">
+            <a class="nav-link" href="{{ route('anggota') }}">
                 <i class="fas fa-fw fa-users"></i>
                 <span>Data Anggota</span>
             </a>
         </li>
 
         <li class="nav-item">
-            <a class="nav-link" href="{{ url('/kegiatan') }}">
+            <a class="nav-link" href="{{ route('kegiatan') }}">
                 <i class="fas fa-fw fa-calendar-check"></i>
                 <span>Jadwal Kegiatan</span>
             </a>
         </li>
 
         <li class="nav-item">
-            <a class="nav-link" href="{{ url('/lomba') }}">
+            <a class="nav-link" href="{{ url('/kehadiran/verifikasi') }}">
+                <i class="fas fa-fw fa-check-square"></i>
+                <span>Kehadiran</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link" href="{{ route('lomba') }}">
                 <i class="fas fa-fw fa-trophy"></i>
                 <span>Data Lomba</span>
             </a>
         </li>
+
+        <li class="nav-item">
+            <a class="nav-link" href="{{ route('nilai') }}">
+                <i class="fas fa-fw fa-graduation-cap"></i>
+                <span>Data Nilai</span>
+            </a>
+        </li>
     @endif
 
-    <!-- SISWA MENU -->
+    <!-- ======================== SISWA ======================== -->
     @if(Auth::user()->role === 'siswa')
         <li class="nav-item">
-            <a class="nav-link" href="{{ url('/kalender-kegiatan') }}">
+            <a class="nav-link" href="{{ route('kalender.kegiatan') }}">
                 <i class="fas fa-fw fa-calendar-alt"></i>
                 <span>Kalender Kegiatan</span>
             </a>
         </li>
 
         <li class="nav-item">
-            <a class="nav-link" href="{{ url('/anggota-saya') }}">
+            <a class="nav-link" href="{{ route('anggota.saya') }}">
                 <i class="fas fa-fw fa-users"></i>
                 <span>Data Anggota</span>
             </a>
         </li>
 
         <li class="nav-item">
-            <a class="nav-link" href="{{ url('/absensi-saya') }}">
+            <a class="nav-link" href="{{ url('/rekap-kehadiran') }}">
                 <i class="fas fa-fw fa-check-circle"></i>
-                <span>Absensi</span>
+                <span>Kehadiran</span>
             </a>
         </li>
 
         <li class="nav-item">
-            <a class="nav-link" href="{{ url('/nilai-saya') }}">
+            <a class="nav-link" href="{{ route('nilai.saya') }}">
                 <i class="fas fa-fw fa-graduation-cap"></i>
                 <span>Nilai</span>
             </a>
         </li>
     @endif
 
-    <!-- Logout -->
+    <!-- ======================== LOGOUT ======================== -->
     <hr class="sidebar-divider d-none d-md-block">
     <li class="nav-item">
         <a class="nav-link" href="{{ route('logout') }}"
@@ -121,5 +135,4 @@
             @csrf
         </form>
     </li>
-
 </ul>

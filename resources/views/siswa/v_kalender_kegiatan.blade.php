@@ -1,11 +1,30 @@
 @extends('layouts.v_template2')
 
 @section('title', 'Kalender Kegiatan')
-
 @section('page', 'Kalender Kegiatan Ekstrakurikuler')
 
 @section('content')
 <div class="container-fluid">
+
+    {{-- Notifikasi Error & Success --}}
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Tutup">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Tutup">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
     <div class="card">
         <div class="card-header">
             <h5>Kalender Kegiatan</h5>
@@ -33,7 +52,7 @@
                 <p><strong>Keterangan:</strong> <span id="modal-keterangan"></span></p>
             </div>
             <div class="modal-footer">
-                <a id="btn-absen" href="#" class="btn btn-primary">Absen Sekarang</a>
+                <a id="btn-absen" href="#" class="btn btn-warning">Absen Sekarang</a>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
             </div>
         </div>
@@ -57,7 +76,7 @@
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek,listMonth'
             },
-            events: '/kalender-kegiatan/json',
+            events: "{{ url('/kalender-kegiatan/json') }}",
             eventClick: function(info) {
                 const event = info.event;
                 const props = event.extendedProps;

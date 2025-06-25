@@ -8,7 +8,7 @@
         <!-- Masthead-->
         <header class="masthead">
             <div class="container">
-                <div class="masthead-subheading">Selamat Datang!</div>
+                <div class="masthead-subheading">Welcome!</div>
                 <div class="masthead-heading text-uppercase">Ekstrakurikuler SMAN 1 Jalancagak</div>
                 <a class="btn btn-primary btn-xl text-uppercase" href="#portfolio">Tell Me More</a>
             </div>
@@ -310,57 +310,57 @@
                 </div>
             </div>
         </section>
-                <!-- Services-->
-                <section class="page-section bg-light" id="galeri-prestasi">
-    <div class="container">
-        <div class="text-center">
-            <h2 class="section-heading text-uppercase">Galeri Prestasi Siswa</h2>
-            <h3 class="section-subheading text-muted">Dokumentasi kegiatan lomba yang diikuti siswa.</h3>
-        </div>
-        <div class="row">
-            @forelse ($lomba as $item)
-                <div class="col-lg-4 col-sm-6 mb-4">
-                    <div class="portfolio-item">
-                        <a class="portfolio-link" data-bs-toggle="modal" href="#modalLomba{{ $item->id_lomba }}">
-                            <div class="portfolio-hover">
-                                <div class="portfolio-hover-content"><i class="fas fa-plus fa-2x"></i></div>
-                            </div>
-                            <img class="img-fluid" src="{{ asset('storage/foto_kegiatan/' . $item->foto_kegiatan) }}" alt="{{ $item->nama_kegiatan }}">
-                        </a>
-                        <div class="portfolio-caption">
-                            <div class="portfolio-caption-heading">{{ $item->nama_kegiatan }}</div>
-                            <div class="portfolio-caption-subheading text-muted">{{ $item->kejuaraan }}</div>
-                        </div>
-                    </div>
+        <!-- Services-->
+        <section class="page-section bg-light" id="galeri-prestasi">
+            <div class="container">
+                <div class="text-center">
+                    <h2 class="section-heading text-uppercase">Galeri Prestasi Siswa</h2>
+                    <h3 class="section-subheading text-muted">Dokumentasi kegiatan lomba yang diikuti siswa.</h3>
                 </div>
+                <div class="row">
+                    @forelse ($lomba as $item)
+                        <div class="col-lg-4 col-sm-6 mb-4">
+                            <div class="portfolio-item">
+                                <a class="portfolio-link" data-bs-toggle="modal" href="#modalLomba{{ $item->id_lomba }}">
+                                    <div class="portfolio-hover">
+                                        <div class="portfolio-hover-content"><i class="fas fa-plus fa-2x"></i></div>
+                                    </div>
+                                    <img class="img-fluid" src="{{ asset('storage/foto_kegiatan/' . $item->foto_kegiatan) }}" alt="{{ $item->nama_kegiatan }}">
+                                </a>
+                                <div class="portfolio-caption">
+                                    <div class="portfolio-caption-heading">{{ $item->nama_kegiatan }}</div>
+                                    <div class="portfolio-caption-subheading text-muted">{{ $item->kejuaraan }}</div>
+                                </div>
+                            </div>
+                        </div>
 
-                <!-- Modal detail -->
-                <div class="portfolio-modal modal fade" id="modalLomba{{ $item->id_lomba }}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-xl">
-                        <div class="modal-content">
-                            <div class="close-modal" data-bs-dismiss="modal"><i class="fas fa-times"></i></div>
-                            <div class="modal-body">
-                                <h2 class="text-uppercase">{{ $item->nama_kegiatan }}</h2>
-                                <p class="item-intro text-muted">Kejuaraan: {{ $item->kejuaraan }}</p>
-                                <img class="img-fluid d-block mx-auto" src="{{ asset('storage/foto_kegiatan/' . $item->foto_kegiatan) }}" alt="{{ $item->nama_kegiatan }}">
-                                <p>Lokasi: {{ $item->lokasi }}</p>
-                                <p>Ekstrakurikuler: {{ $item->nama_ekskul }}</p>
-                                <p>Peserta: {{ $item->nama_siswa }}</p>
-                                <p>Tanggal: {{ \Carbon\Carbon::parse($item->tanggal)->format('d M Y') }}</p>
-                                <button class="btn btn-primary" data-bs-dismiss="modal" type="button">
-                                    <i class="fas fa-times"></i>
-                                    Tutup
-                                </button>
+                        <!-- Modal detail -->
+                        <div class="portfolio-modal modal fade" id="modalLomba{{ $item->id_lomba }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-xl">
+                                <div class="modal-content">
+                                    <div class="close-modal" data-bs-dismiss="modal"><i class="fas fa-times"></i></div>
+                                    <div class="modal-body">
+                                        <h2 class="text-uppercase">{{ $item->nama_kegiatan }}</h2>
+                                        <p class="item-intro text-muted">Kejuaraan: {{ $item->kejuaraan }}</p>
+                                        <img class="img-fluid d-block mx-auto" src="{{ asset('storage/foto_kegiatan/' . $item->foto_kegiatan) }}" alt="{{ $item->nama_kegiatan }}">
+                                        <p>Lokasi: {{ $item->lokasi }}</p>
+                                        <p>Ekstrakurikuler: {{ $item->nama_ekskul }}</p>
+                                        <p>Peserta: {{ $item->nama_siswa }}</p>
+                                        <p>Tanggal: {{ \Carbon\Carbon::parse($item->tanggal)->format('d M Y') }}</p>
+                                        <button class="btn btn-primary" data-bs-dismiss="modal" type="button">
+                                            <i class="fas fa-times"></i>
+                                            Tutup
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    @empty
+                        <p class="text-center">Belum ada data lomba dengan foto kegiatan.</p>
+                    @endforelse
                 </div>
-            @empty
-                <p class="text-center">Belum ada data lomba dengan foto kegiatan.</p>
-            @endforelse
-        </div>
-    </div>
-</section>
+            </div>
+        </section>
 
         <!-- Kalender Kegiatan -->
         <section class="page-section" id="about">

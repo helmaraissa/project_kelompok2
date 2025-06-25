@@ -49,9 +49,9 @@ class m_lomba extends Model
     public function detailData($id_lomba)
     {
         return DB::table('lomba')
-            ->leftJoin('anggota', 'lomba.id_anggota', '=', 'anggota.id_anggota')
+            ->leftJoin('anggota', 'lomba.id_anggota', '=', 'anggota.id') // ← sesuaikan juga jika PK-nya 'id'
             ->leftJoin('ekskul', 'lomba.id_ekskul', '=', 'ekskul.id_ekskul')
-            ->select('lomba.*', 'anggota.nama_siswa', 'anggota.nis', 'ekskul.nama_ekskul')
+            ->select('lomba.*', 'anggota.nama', 'anggota.nis', 'ekskul.nama_ekskul') // ← Ganti 'nama_siswa' jadi 'nama'
             ->where('lomba.id_lomba', $id_lomba)
             ->first();
     }
