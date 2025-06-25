@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -9,14 +8,16 @@ use App\Models\m_nilai;
 
 class c_nilai extends Controller
 {
+    // Menampilkan data nilai tergantung role user (pembina atau siswa)
     public function index(Request $request)
     {
-        $user = Auth::user();
+        $user = Auth::user(); // Ambil user yang sedang login
         $role = $user->role;
 
         if ($role === 'pembina') {
             $id_pembina = $user->id;
 
+            // Ambil daftar kelas dari anggota ekskul yang dibina
             $kelasList = DB::table('anggota')
                 ->join('ekskul', 'anggota.id_ekskul', '=', 'ekskul.id_ekskul')
                 ->where('ekskul.id_pembina', $id_pembina)
@@ -24,8 +25,9 @@ class c_nilai extends Controller
                 ->distinct()
                 ->pluck('kelas');
 
-            $filterKelas = $request->input('kelas');
+            $filterKelas = $request->input('kelas'); // Filter kelas dari form
 
+            // Query nilai berdasarkan ekskul yang dibina
             $query = DB::table('nilai')
                 ->join('anggota', 'nilai.id_anggota', '=', 'anggota.id')
                 ->join('ekskul', 'nilai.id_ekskul', '=', 'ekskul.id_ekskul')
@@ -38,13 +40,14 @@ class c_nilai extends Controller
                     'ekskul.nama_ekskul'
                 );
 
+            // Filter berdasarkan kelas jika ada
             if ($filterKelas) {
                 $query->where('anggota.kelas', $filterKelas);
             }
 
             $nilai = $query->get();
-
         } elseif ($role === 'siswa') {
+            // Jika siswa, tampilkan nilai miliknya sendiri
             $id_user = $user->id;
             $kelasList = [];
             $filterKelas = '';
@@ -62,10 +65,11 @@ class c_nilai extends Controller
                 )
                 ->get();
         } else {
+            // Role tidak valid
             abort(403);
         }
 
-        // Hitung otomatis nilai
+        // Hitung nilai otomatis (kehadiran & lomba) untuk setiap item
         foreach ($nilai as $item) {
             $totalKegiatan = DB::table('kegiatan')->where('id_ekskul', $item->id_ekskul)->count();
             $totalHadir = DB::table('kehadiran')->where('id_anggota', $item->id_anggota)->where('status', 'Hadir')->count();
@@ -75,14 +79,16 @@ class c_nilai extends Controller
             $item->nilai_lomba = $jumlahLomba;
         }
 
+        // Tampilkan ke view
         return view('v_datanilai', compact('nilai', 'kelasList', 'filterKelas'));
     }
 
+    // Menampilkan detail nilai (termasuk kehadiran dan lomba)
     public function detail($id)
     {
         $nilai = m_nilai::with('anggota')->findOrFail($id);
 
-        // Ambil kehadiran
+        // Ambil kehadiran berdasarkan anggota
         $kehadiran = DB::table('kehadiran')
             ->join('kegiatan', 'kehadiran.id_kegiatan', '=', 'kegiatan.id')
             ->where('kehadiran.id_anggota', $nilai->id_anggota)
@@ -90,13 +96,13 @@ class c_nilai extends Controller
             ->orderBy('kegiatan.tanggal', 'asc')
             ->get();
 
-        // Ambil lomba
+        // Ambil data lomba
         $lomba = DB::table('lomba')
             ->where('id_anggota', $nilai->id_anggota)
             ->select('nama_kegiatan', 'lokasi', 'kejuaraan', 'tanggal')
             ->get();
 
-        // Hitung kehadiran & jumlah lomba
+        // Hitung ringkasan
         $totalKegiatan = DB::table('kegiatan')->where('id_ekskul', $nilai->id_ekskul)->count();
         $totalHadir = DB::table('kehadiran')->where('id_anggota', $nilai->id_anggota)->where('status', 'Hadir')->count();
         $jumlahLomba = DB::table('lomba')->where('id_anggota', $nilai->id_anggota)->count();
@@ -107,10 +113,12 @@ class c_nilai extends Controller
         return view('pembina.v_detailnilai', compact('nilai', 'kehadiran', 'lomba'));
     }
 
+    // Tampilkan form tambah nilai
     public function add()
     {
         $id_pembina = auth()->user()->id;
 
+        // Ambil anggota dari ekskul yang dibina
         $anggota = DB::table('anggota')
             ->join('ekskul', 'anggota.id_ekskul', '=', 'ekskul.id_ekskul')
             ->where('ekskul.id_pembina', $id_pembina)
@@ -120,6 +128,7 @@ class c_nilai extends Controller
         return view('pembina.v_addnilai', compact('anggota'));
     }
 
+    // Simpan nilai baru ke database
     public function insert(Request $request)
     {
         $request->validate([
@@ -130,6 +139,7 @@ class c_nilai extends Controller
 
         $anggota = DB::table('anggota')->where('id', $request->id_anggota)->first();
 
+        // Hitung nilai kategori otomatis
         $kategori = $this->hitungKategoriOtomatis($anggota->id, $anggota->id_ekskul);
 
         DB::table('nilai')->insert([
@@ -145,12 +155,14 @@ class c_nilai extends Controller
         return redirect()->route('nilai')->with('success', 'Nilai berhasil ditambahkan.');
     }
 
+    // Tampilkan form edit nilai
     public function edit($id)
     {
         $nilai = m_nilai::with('anggota')->findOrFail($id);
         return view('pembina.v_editnilai', compact('nilai'));
     }
 
+    // Update nilai
     public function update(Request $r, $id)
     {
         $nilai = m_nilai::findOrFail($id);
@@ -172,6 +184,7 @@ class c_nilai extends Controller
         return redirect()->route('nilai')->with('success', 'Nilai berhasil diperbarui.');
     }
 
+    // Hapus data nilai
     public function delete($id)
     {
         $nilai = m_nilai::findOrFail($id);
@@ -180,6 +193,7 @@ class c_nilai extends Controller
         return redirect()->route('nilai')->with('success', 'Nilai berhasil dihapus.');
     }
 
+    // Fungsi untuk menghitung kategori nilai secara otomatis
     private function hitungKategoriOtomatis($id_anggota, $id_ekskul)
     {
         $totalKegiatan = DB::table('kegiatan')->where('id_ekskul', $id_ekskul)->count();
@@ -188,6 +202,7 @@ class c_nilai extends Controller
 
         $persentase = $totalKegiatan > 0 ? ($totalHadir / $totalKegiatan) * 100 : 0;
 
+        // Penilaian otomatis berdasarkan ketentuan
         if ($persentase >= 90 && $jumlahLomba >= 2) return 'Sangat Baik';
         if ($persentase >= 75 && $jumlahLomba >= 1) return 'Baik Sekali';
         if ($persentase >= 60) return 'Baik';
@@ -195,6 +210,7 @@ class c_nilai extends Controller
         return 'Kurang';
     }
 
+    // Cetak nilai berdasarkan kelas
     public function printByKelas($kelas)
     {
         $user = Auth::user();
@@ -215,6 +231,7 @@ class c_nilai extends Controller
             )
             ->get();
 
+        // Hitung otomatis untuk tiap nilai
         foreach ($nilai as $item) {
             $totalKegiatan = DB::table('kegiatan')->where('id_ekskul', $item->id_ekskul)->count();
             $totalHadir = DB::table('kehadiran')->where('id_anggota', $item->id_anggota)->where('status', 'Hadir')->count();

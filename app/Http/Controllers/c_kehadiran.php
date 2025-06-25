@@ -11,11 +11,12 @@ use App\Models\m_anggota;
 
 class c_kehadiran extends Controller
 {
-public function formSiswa($id_kegiatan)
+    // Form absensi untuk siswa berdasarkan kegiatan
+    public function formSiswa($id_kegiatan)
     {
         $kegiatan = m_kegiatan::with('ekskul')->findOrFail($id_kegiatan);
 
-        // Cek jika hari ini sudah lewat dari tanggal kegiatan (hanya bandingkan tanggal saja)
+        // Cek apakah kegiatan sudah lewat tanggal
         if (now()->toDateString() > $kegiatan->tanggal) {
             return redirect('/kalender-kegiatan')->with('error', 'Kegiatan ini sudah lewat. Tidak bisa melakukan absensi.');
         }
@@ -25,7 +26,7 @@ public function formSiswa($id_kegiatan)
                             ->where('id_ekskul', $kegiatan->id_ekskul)
                             ->firstOrFail();
 
-        // Cek apakah sudah absen
+        // Cek apakah sudah absen sebelumnya
         $cek = m_kehadiran::where('id_kegiatan', $id_kegiatan)
                         ->where('id_anggota', $anggota->id)
                         ->first();
@@ -37,6 +38,7 @@ public function formSiswa($id_kegiatan)
         return view('v_formkehadiran', compact('kegiatan', 'anggota'));
     }
 
+    // Simpan absensi siswa ke database
     public function simpanSiswa(Request $request)
     {
         $request->validate([
@@ -46,13 +48,16 @@ public function formSiswa($id_kegiatan)
             'keterangan' => 'nullable|string',
         ]);
 
+        // Cek apakah sudah absen
         $cek = m_kehadiran::where('id_kegiatan', $request->id_kegiatan)
                           ->where('id_anggota', $request->id_anggota)
                           ->first();
+
         if ($cek) {
             return back()->with('error', 'Kamu sudah melakukan absensi untuk kegiatan ini.');
         }
 
+        // Simpan data absensi
         m_kehadiran::create([
             'id_kegiatan' => $request->id_kegiatan,
             'id_anggota' => $request->id_anggota,
@@ -63,6 +68,7 @@ public function formSiswa($id_kegiatan)
         return redirect('/kalender-kegiatan')->with('success', 'Absensi berhasil dikirim.');
     }
 
+    // Tampilkan daftar absensi yang perlu diverifikasi dan yang sudah diverifikasi
     public function listVerifikasi()
     {
         $id_pembina = auth()->user()->id;
@@ -71,7 +77,7 @@ public function formSiswa($id_kegiatan)
             ->where('id_pembina', $id_pembina)
             ->pluck('id_ekskul');
 
-        // Belum diverifikasi
+        // Absensi yang belum diverifikasi
         $belum = DB::table('kehadiran')
             ->join('anggota', 'kehadiran.id_anggota', '=', 'anggota.id')
             ->join('users', 'anggota.id_user', '=', 'users.id')
@@ -81,7 +87,7 @@ public function formSiswa($id_kegiatan)
             ->select('kehadiran.*', 'users.name as nama', 'kegiatan.nama_kegiatan')
             ->get();
 
-        // Sudah diverifikasi
+        // Absensi yang sudah diverifikasi
         $sudah = DB::table('kehadiran')
             ->join('anggota', 'kehadiran.id_anggota', '=', 'anggota.id')
             ->join('users', 'anggota.id_user', '=', 'users.id')
@@ -94,6 +100,7 @@ public function formSiswa($id_kegiatan)
         return view('v_verifikasi_kehadiran', compact('belum', 'sudah'));
     }
 
+    // Verifikasi satu absensi berdasarkan ID
     public function verifikasi($id)
     {
         DB::table('kehadiran')
@@ -103,6 +110,7 @@ public function formSiswa($id_kegiatan)
         return redirect()->back()->with('success', 'Kehadiran berhasil diverifikasi.');
     }
 
+    // Rekap kehadiran untuk siswa (yang login)
     public function rekapSiswa()
     {
         $id_user = auth()->user()->id;
@@ -112,7 +120,7 @@ public function formSiswa($id_kegiatan)
             return redirect()->back()->with('error', 'Data anggota tidak ditemukan.');
         }
 
-        // Rekap jumlah status
+        // Hitung total kehadiran berdasarkan status
         $rekap = m_kehadiran::where('id_anggota', $anggota->id)
             ->where('diverifikasi', 1)
             ->selectRaw('
@@ -123,7 +131,7 @@ public function formSiswa($id_kegiatan)
             ')
             ->first();
 
-        // Data per kegiatan
+        // Ambil list absensi per kegiatan
         $kehadiran_list = m_kehadiran::with('kegiatan')
             ->where('id_anggota', $anggota->id)
             ->where('diverifikasi', 1)
@@ -133,6 +141,7 @@ public function formSiswa($id_kegiatan)
         return view('siswa.v_rekapkehadiran', compact('rekap', 'anggota', 'kehadiran_list'));
     }
 
+    // Verifikasi massal kehadiran berdasarkan input array ID
     public function massVerifikasi(Request $request)
     {
         $ids = $request->input('ids', []);
